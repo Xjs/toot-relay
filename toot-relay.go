@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
@@ -46,6 +47,19 @@ func main() {
 			log.Fatalf("CA file %s specified but no CA certificates could be loaded\n", caFile)
 		}
 	}
+
+	transport := &http2.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: rootCAs,
+		},
+		DialTLS: apns2.DialTLS,
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   apns2.HTTPClientTimeout,
+	}
+
+	fmt.Println(client.Get(apns2.DefaultHost))
 
 	if p12base64 != "" {
 		bytes, err := base64.StdEncoding.DecodeString(p12base64)
